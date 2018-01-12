@@ -142,6 +142,7 @@ class Stage extends React.Component {
         this.props.vm.setEditingTarget(targetId);
     }
     onMouseMove (e) {
+        this.setState({clickTime:0});
         const {x, y} = getEventXY(e);
         const mousePosition = [x - this.rect.left, y - this.rect.top];
 
@@ -171,7 +172,23 @@ class Stage extends React.Component {
         };
         this.props.vm.postIOData('mouse', coordinates);
     }
+    onClick(e){
+        console.log('clicked');
+        const {x, y} = getEventXY(e);
+        console.log(x,y,x - this.rect.left,y - this.rect.top);
+        const drawableId = this.renderer.pick(x - this.rect.left, y - this.rect.top);
+        if (drawableId === null) return;
+        const drawableData = this.renderer.extractDrawable(drawableId, x - this.rect.left, y - this.rect.top);
+        const targetId = this.props.vm.getTargetIdForDrawableId(drawableId);
+        if (targetId === null) return;
+        // this.props.vm.postSpriteInfo({direction:10}) // 旋转
+        // this.props.vm.postSpriteInfo({size}); // 调整大小
+    }
     onMouseUp (e) {
+        if(this.state.clickTime){
+            this.setState({clickTime:0})
+            this.onClick(e);
+        }
         const {x, y} = getEventXY(e);
         this.cancelMouseDownTimeout();
         this.setState({
@@ -192,6 +209,7 @@ class Stage extends React.Component {
         }
     }
     onMouseDown (e) {
+        this.setState({clickTime:new Date().getTime()});
         this.updateRect();
         const {x, y} = getEventXY(e);
         const mousePosition = [x - this.rect.left, y - this.rect.top];
